@@ -8,7 +8,7 @@ This repo explains at API level how to create a live streaming job in [Brightcov
 - Frame accurate clipping based on SMPTE Time code
 
 ## Create a live job
-- We assume you already have a brightcove acount and they you have your API-KEY, let call it `bcov-live-api-key`
+- We assume you already have a brightcove acount and they you have your API-KEY, let's call it `bcov-live-api-key`
 - You need to create the following requests with [curl](https://curl.haxx.se/)
 
 ```
@@ -89,7 +89,7 @@ The most imporant point for this tests are:
 - Check "time code insertion" inside video
 - Strongly recommended Framerate = follow source
 
-This is the config I used for this experiment:
+This is the config we used for this experiment:
 ![elemental-live-job-config](./pics/elemental-live-job-config-v1.png "Elemental live config")
 
 ## Test playback
@@ -100,8 +100,6 @@ You can use [VideoJS HLS demo page](https://videojs.github.io/videojs-contrib-hl
 It is assumend you have a Youtube account enabled for live streaming.
 - Click "go live", see:
 ![youtube-go-live](./pics/youtube-go-live.png "Youtube go live")
-- Click on "Encoder live streaming":
-![youtube-encoder-live](./pics/youtube-encoder-live.png "Youtube encoder live source")
 - Click on "Encoder live streaming":
 ![youtube-encoder-live](./pics/youtube-encoder-live.png "Youtube encoder live source")
 - Configure your live event Youtube metadata and use the "Encoder set up data to connect the Brightcove live stream to Youtube
