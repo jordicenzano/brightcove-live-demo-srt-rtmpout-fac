@@ -176,8 +176,9 @@ The response should be something like this:
 
 ## Create a **frame accurate** clip based on SMPTE TC
 It is assumed you have an AWS account.
-- Create an S3 bucket and a AWS IAM user with write rights to that bucket, see [create s3 bukcet](https://docs.aws.amazon.com/quickstarts/latest/s3backup/step-1-create-bucket.html), [create IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html), [set IAM user rights to access S3 folders](https://aws.amazon.com/premiumsupport/knowledge-center/iam-s3-user-specific-folder/)
-- Get AWS access ID and SECRET for that user and add those as s3 credential to Brighcove live with the following command:
+- Create the destination S3 bucket and configure the credentials (you just need to to that once):
+     - Create an S3 bucket and a AWS IAM user with write rights to that bucket, see [create s3 bukcet](https://docs.aws.amazon.com/quickstarts/latest/s3backup/step-1-create-bucket.html), [create IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html), [set IAM user rights to access S3 folders](https://aws.amazon.com/premiumsupport/knowledge-center/iam-s3-user-specific-folder/)
+     - Get AWS access ID and SECRET for that user and add those as s3 credential to Brighcove live with the following command:
 ```
 curl -X POST \
   https://api.bcovlive.io/v1/credentials \
