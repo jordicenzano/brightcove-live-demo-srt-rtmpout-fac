@@ -201,7 +201,7 @@ The response should be something like this:
 {"credential_id":"296f44cb4fb54ef7a828ba0a60512cd2","user_id":"666f23e01f57441890650a97dc189301","credential_label":"AWS-TEST-S3-UPLOADS"}
 ```
 
-- Create the following reuqest that will create the clip and upload it to your S3 bucket:
+- Create the following request that will create the clip and upload it to your S3 bucket:
 ```
 curl -X POST \
   https://api.bcovlive.io/v1/vods \
@@ -221,7 +221,7 @@ curl -X POST \
 **Replace:**
 - `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdfeg-this-is-a-fake-api-key-FgJajjasd12hJHsZ`
 - `{{bcov-live-job-id}}` for your Brightcove live API key. In out example this value should be `3b6871bf2f344acaa6b397d09b476018`
-- `{{timecode-in}}` and `{{timecode-out}}` should be values that make sense (present) in your live stream
+- `{{timecode-in}}` and `{{timecode-out}}` should be values that make sense (present) in your live stream. In our example we have used: `17:33:11:12` and `17:34:00:00`
 
 The response should be something like this:
 ```
