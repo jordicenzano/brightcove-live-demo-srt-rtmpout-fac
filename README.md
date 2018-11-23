@@ -1,6 +1,5 @@
 # brightcove-live-demo-srt-rtmpout-fac
-
-TODO PICTURE
+![general-block-diagram](./pics/block-diagram.png "Block diagram")
 
 # Introduction
 This repo explains at API level how to create a live streaming job in [Brightcove live](https://www.brightcove.com/en/live) and take advantage of some of the advaced features this platform offers, such as:
@@ -63,7 +62,7 @@ curl -X POST \
 ```
 **Replace:**
 - `{{closest-region-encoder}}` for the closest available region to your encoder, see [closest available regions](https://support.brightcove.com/overview-brightcove-live-api#Support_aws_regions) to your encoder. For instance: `us-west-2`
-- `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdefgaVANBYUJKSDJ2342343212345`
+- `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdfeg-this-is-a-fake-api-key-FgJajjasd12hJHsZ`
 
 The response should be something like this:
 ```
@@ -97,12 +96,12 @@ You can use [VideoJS HLS demo page](https://videojs.github.io/videojs-contrib-hl
 ![videojs-hls-playback](./pics/videojs-hls-playback.png "VideoJS HLS playback demo page")
 
 ## Add the live stream to Youtube live
-It is assumend you have a Youtube account enabled for live streaming.
+It is assumed you have a Youtube account enabled for live streaming.
 - Click "go live", see:
 ![youtube-go-live](./pics/youtube-go-live.png "Youtube go live")
 - Click on "Encoder live streaming":
 ![youtube-encoder-live](./pics/youtube-encoder-live.png "Youtube encoder live source")
-- Configure your live event Youtube metadata and use the "Encoder set up data to connect the Brightcove live stream to Youtube
+- Configure your live event Youtube metadata and use the "Encoder set up" data to connect the Brightcove live stream to Youtube
 ![youtube-encoder-setup](./pics/youtube-encoder-setup.png "Youtube encoder setup")
 - Create live output for Brightcove live job using "encoder setup" settings:
 ```
@@ -116,8 +115,8 @@ curl -X POST \
 ```
 **Replace:**
 - `{{bcov-live-job-id}}` for your Brightcove live API key. In out example this value should be `3b6871bf2f344acaa6b397d09b476018`
-- `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdefgaVANBYUJKSDJ2342343212345`
-- `{{youtube-secret-stream-name}}` for you stream name / key that Youtube gives you
+- `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdfeg-this-is-a-fake-api-key-FgJajjasd12hJHsZ`
+- `{{youtube-secret-stream-name}}` for the stream name / key that Youtube provides
 
 The response should be something like this:
 ```
@@ -138,7 +137,7 @@ The response should be something like this:
 ![youtube-my-channel-playback](./pics/youtube-my-channel-playback.png "Youtube my channel playback")
 
 ## Add the live stream to Facebook live
-It is assumend you have a Facebook account enabled for live streaming.
+It is assumed you have a Facebook account enabled for live streaming.
 - Just click "Live video"
 - Click "connect" and stream key to get the data needed to connect your Brightcove live job, see:
 ![facebook-live-config](./pics/facebook-live-config.png "Facebook live config")
@@ -152,6 +151,10 @@ curl -X POST \
   "url": "rtmp://live-api-s.facebook.com:80/rtmp/{{facebook-secret-stream-name}}"
 }'
 ```
+**Replace:**
+- `{{bcov-live-job-id}}` for your Brightcove live API key. In out example this value should be `3b6871bf2f344acaa6b397d09b476018`
+- `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdfeg-this-is-a-fake-api-key-FgJajjasd12hJHsZ`
+- `{{facebook-secret-stream-name}}` for you stream name that Facebook gives you
 
 The response should be something like this:
 ```
@@ -168,18 +171,78 @@ The response should be something like this:
 }
 ```
 
-- The last step is just to click "Go Live" and test Facebook live playback
+- The last step is just to click "Go Live" on Facebook webpage and test Facebook live playback
 ![facebook-playback](./pics/facebook-playback.png "Facebook playback")
 
-
+## Create a **frame accurate** clip based on SMPTE TC
+It is assumed you have an AWS account.
+- Create an S3 bucket and a AWS IAM user with write rights to that bucket, see [create s3 bukcet](https://docs.aws.amazon.com/quickstarts/latest/s3backup/step-1-create-bucket.html), [create IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html), [set IAM user rights to access S3 folders](https://aws.amazon.com/premiumsupport/knowledge-center/iam-s3-user-specific-folder/)
+- Get AWS access ID and SECRET for that user and add those as s3 credential to Brighcove live with the following command:
+```
+curl -X POST \
+  https://api.bcovlive.io/v1/credentials \
+  -H 'Content-Type: application/json' \
+  -H 'x-api-key: {{bcov-live-api-key}}' \
+  -d '{
+  "credential_default_for_type": false,
+  "credential_label": "AWS-TEST-S3-UPLOADS",
+  "credential_private": "{{aws-iam-user-id}}",
+  "credential_public": "{{aws-iam-user-secret}}",
+  "credential_type": "s3"
+}'
+```
 **Replace:**
+- `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdfeg-this-is-a-fake-api-key-FgJajjasd12hJHsZ`
+- `{{aws-iam-user-id}}` and `{{aws-iam-user-secret}}` for the values provided by AWS
+
+The response should be something like this:
+```
+{"credential_id":"296f44cb4fb54ef7a828ba0a60512cd2","user_id":"666f23e01f57441890650a97dc189301","credential_label":"AWS-TEST-S3-UPLOADS"}
+```
+
+- Create the following reuqest that will create the clip and upload it to your S3 bucket:
+```
+curl -X POST \
+  https://api.bcovlive.io/v1/vods \
+  -H 'Content-Type: application/json' \
+  -H 'x-api-key: {{bcov-live-api-key}}' \
+  -d '{
+    "live_job_id":"{{bcov-live-job-id}}",
+    "outputs":[{
+        "label": "Trim by SMPTE TC 17:33:11:12 to 17:34:00:00",
+    	"stream_start_timecode": "{{timecode-in}}",
+    	"stream_end_timecode": "{{timecode-out}}",
+        "url":"s3://jordi-test/clipping-test/smpte_tc_1542910526.mp4",
+        "credentials": "AWS-TEST-S3-UPLOADS"
+    }]
+}'
+```
+**Replace:**
+- `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdfeg-this-is-a-fake-api-key-FgJajjasd12hJHsZ`
 - `{{bcov-live-job-id}}` for your Brightcove live API key. In out example this value should be `3b6871bf2f344acaa6b397d09b476018`
-- `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdefgaVANBYUJKSDJ2342343212345`
-- `{{facebook-secret-stream-name}}` for you stream name that Facebook gives you
+- `{{timecode-in}}` and `{{timecode-out}}` should be values that make sense (present) in your live stream
+
+The response should be something like this:
+```
+{
+    "vod_jobs": [
+        {
+            "jvod_id": "0b14a4ba326d4dd08f15053ca2a403b7",
+            "label": "Trim by SMPTE TC 17:33:11:12 to 17:34:00:00"
+        }
+    ],
+    "live_job_id": "3b6871bf2f344acaa6b397d09b476018"
+}
+```
+- To test the accuracy of the experiment we downloaded the clip and used [Adobe premiere](https://www.adobe.com/products/premiere.html) to checked the 1st and last frame, since the timecode is overlayed a simple visual check is enough to confirm the accuracy at input and output points:
+![clip-accuracy-in](./pics/clip-accuracy-in.png "Visual clip accuracy test - in")
+![clip-accuracy-out](./pics/clip-accuracy-out.png "Visual clip accuracy test - out")
+
+Note: We can use [AWS lambdas](https://aws.amazon.com/lambda/) and [AWS Lambdas step functions](https://aws.amazon.com/step-functions/) to automate any kind of VOD publishing process based on the event trigered by S3 PUT.
 
 # References
 - [Brightcove live API reference](https://docs.brightcove.com/live-api/v1/doc/index.html)
 
 # TODOs
-- Create FAC highlights!!!!
-- Add [SRT](https://www.srtalliance.org/about-github/) ingest.  *Remember SRT is based on UDP bidirectional communication*, your firewall / router needs to be configured properly and allow UDP outputs from the encoder (caller) and UDP back from the internet on the same port
+- Add [SRT](https://www.srtalliance.org/about-github/) as ingest option.  *Remember SRT is based on UDP bidirectional communication*, your firewall / router needs to be configured properly and allow UDP outputs from the encoder's IP (caller) and UDP back from the internet on the same port
+- Add TS+FEC as ingest option. *This communications is based on UDP unidirectional communication (encoder to live platform)*, your firewall / router needs to be configured properly and allow UDP outputs from the encoder to the internet from the encoder's IP.
