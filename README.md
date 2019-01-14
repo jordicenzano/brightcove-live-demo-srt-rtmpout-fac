@@ -10,7 +10,8 @@ This repo explains at API level how to create a live streaming job in [Brightcov
 - We assume you already have a brightcove acount and they you have your API-KEY, let's call it `bcov-live-api-key`
 - You need to create the following requests with [curl](https://curl.haxx.se/)
 
-For RTMP input use:
+### RTMP input
+You can use this job request:
 ```
 curl -X POST \
   https://api.bcovlive.io/v1/jobs \
@@ -62,7 +63,8 @@ curl -X POST \
 }'
 ```
 
-Or, if your encoder is able to send TS+FEC (SMPTE 2022), then you can use:
+### TS + FEC (SMPTE 2022)
+Job request for TS + FEC:
 ```
 curl -X POST \
   https://api.bcovlive.io/v1/jobs \
@@ -72,6 +74,60 @@ curl -X POST \
     "live_stream": true,
     "region": "us-west-2",
     "protocol": "rtp-fec",
+    "cidr_whitelist": ["{{MiEncoderIPRange}}", "{{MiBackupEncoderIPRange}}"],
+    "outputs": [{
+        "label": "hls360p",
+        "live_stream": true,
+        "height": 360,
+        "video_bitrate": 365,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   },
+   {
+        "label": "hls432p",
+        "live_stream": true,
+        "height": 432,
+        "video_bitrate": 730,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   },
+   {
+        "label": "hls540p",
+        "live_stream": true,
+        "height": 540,
+        "video_bitrate": 2000,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   },
+   {
+        "label": "hls720p3M",
+        "live_stream": true,
+        "height": 540,
+        "video_bitrate": 2000,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   },
+   {
+        "label": "hls720p4.5M",
+        "live_stream": true,
+        "height": 720,
+        "video_bitrate": 4500,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   }]
+}'
+```
+### SRT
+Job request for SRT:
+```
+curl -X POST \
+  https://api.bcovlive.io/v1/jobs \
+  -H 'Content-Type: application/json' \
+  -H 'x-api-key: {{bcov-live-api-key}}' \
+  -d '{
+    "live_stream": true,
+    "region": "us-west-2",
+    "protocol": "srt",
     "cidr_whitelist": ["{{MiEncoderIPRange}}", "{{MiBackupEncoderIPRange}}"],
     "outputs": [{
         "label": "hls360p",
@@ -149,6 +205,20 @@ This is a example response for TS+FEC:
 }
 ```
 
+Example response for SRT:
+```
+{
+    "id": "cdb820f2d7764b91a79536dac799fb77",
+    "outputs": [... removed for simplicity ...],
+    "stream_url": "srt://ec2-34-212-0-224.us-west-2.compute.amazonaws.com:13820",
+    "stream_name": "cdb820f2d7764b91a79536dac799fb77.stream",
+    "static": false,
+    "encryption": {},
+    "playback_url": "https://bcovlive-a.akamaihd.net/cdb820f2d7764b91a79536dac799fb77/us-west-2/NA/playlist.m3u8",
+    "playback_url_dvr": "https://bcovlive-a.akamaihd.net/cdb820f2d7764b91a79536dac799fb77/us-west-2/NA/playlist_dvr.m3u8"
+}
+```
+
 This jobs will create 5 renditions **based** on [Apple recommendations](https://developer.apple.com/documentation/http_live_streaming/hls_authoring_specification_for_apple_devices).
 
 ## Configure your encoder
@@ -160,6 +230,7 @@ The most imporant point for this tests are:
 - Strongly recommended Framerate = follow source
 
 This is the config we used for RTMP input:
+
 ![elemental-live-job-config](./pics/elemental-live-job-config-v1.png "Elemental live config for RTMP")
 
 For TS+FEC input test we'll use same elemental encoder [Elemental live box](https://www.elemental.com/products/aws-elemental-live) encoder.
@@ -173,7 +244,12 @@ The most imporant point for this tests are:
 - Strongly recommended Framerate = follow source
 
 This is the config we used for TS+FEC input:
+
 ![elemental-live-job-config](./pics/elemental-live-job-config-fec-v1.png "Elemental live config for TS+FEC")
+
+This is the configuration we used for SRT in a [Haivision KB](https://www.haivision.com/products/kb-series/):
+
+![haivision-kb-srt-config](./pics/haivision-kb-srt-config.png "Haivision KB SRT config")
 
 ## Test playback
 You can use [VideoJS HLS demo page](https://videojs.github.io/videojs-contrib-hls/) to test playback, just paste the value "playback_url" returned in the creation job response. See next picture.
