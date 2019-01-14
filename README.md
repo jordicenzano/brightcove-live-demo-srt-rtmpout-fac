@@ -10,6 +10,7 @@ This repo explains at API level how to create a live streaming job in [Brightcov
 - We assume you already have a brightcove acount and they you have your API-KEY, let's call it `bcov-live-api-key`
 - You need to create the following requests with [curl](https://curl.haxx.se/)
 
+For RTMP input use:
 ```
 curl -X POST \
   https://api.bcovlive.io/v1/jobs \
@@ -60,11 +61,67 @@ curl -X POST \
    }]
 }'
 ```
+
+Or, if your encoder is able to send TS+FEC (SMPTE 2022), then you can use:
+```
+curl -X POST \
+  https://api.bcovlive.io/v1/jobs \
+  -H 'Content-Type: application/json' \
+  -H 'x-api-key: {{bcov-live-api-key}}' \
+  -d '{
+    "live_stream": true,
+    "region": "us-west-2",
+    "protocol": "rtp-fec",
+    "cidr_whitelist": ["{{MiEncoderIPRange}}", "{{MiBackupEncoderIPRange}}"],
+    "outputs": [{
+        "label": "hls360p",
+        "live_stream": true,
+        "height": 360,
+        "video_bitrate": 365,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   },
+   {
+        "label": "hls432p",
+        "live_stream": true,
+        "height": 432,
+        "video_bitrate": 730,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   },
+   {
+        "label": "hls540p",
+        "live_stream": true,
+        "height": 540,
+        "video_bitrate": 2000,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   },
+   {
+        "label": "hls720p3M",
+        "live_stream": true,
+        "height": 540,
+        "video_bitrate": 2000,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   },
+   {
+        "label": "hls720p4.5M",
+        "live_stream": true,
+        "height": 720,
+        "video_bitrate": 4500,
+        "segment_seconds": 6,
+        "keyframe_interval": 60
+   }]
+}'
+```
+
 **Replace:**
 - `{{closest-region-encoder}}` for the closest available region to your encoder, see [closest available regions](https://support.brightcove.com/overview-brightcove-live-api#Support_aws_regions) to your encoder. For instance: `us-west-2`
 - `{{bcov-live-api-key}}` for your Brightcove live API key. For instance: `abcdfeg-this-is-a-fake-api-key-FgJajjasd12hJHsZ`
+- (For TS+FEC) `{{MiEncoderIPRange}}` and `{{MiBackupEncoderIPRange}}`, those looks like: `1.2.3.4/32`
 
-The response should be something like this:
+The response should be something like this for RTMP:
 ```
 {
     "id": "3b6871bf2f344acaa6b397d09b476018",
@@ -78,18 +135,45 @@ The response should be something like this:
 }
 ```
 
+This is a example response for TS+FEC:
+```
+{
+    "id": "42c913e5373844a99a6285367f2704ec",
+    "outputs": [... removed for simplicity ...],
+    "stream_url": "rtp://ec2-34-212-0-224.us-west-2.compute.amazonaws.com:12675",
+    "stream_name": "42c913e5373844a99a6285367f2704ec.stream",
+    "static": false,
+    "encryption": {},
+    "playback_url": "https://bcovlive-a.akamaihd.net/42c913e5373844a99a6285367f2704ec/us-west-2/NA/playlist.m3u8",
+    "playback_url_dvr": "https://bcovlive-a.akamaihd.net/42c913e5373844a99a6285367f2704ec/us-west-2/NA/playlist_dvr.m3u8"
+}
+```
+
 This jobs will create 5 renditions **based** on [Apple recommendations](https://developer.apple.com/documentation/http_live_streaming/hls_authoring_specification_for_apple_devices).
 
 ## Configure your encoder
-In this case we'll use a [Elemental live box](https://www.elemental.com/products/aws-elemental-live) encoder.
+For RTMP input test We'll use a [Elemental live box](https://www.elemental.com/products/aws-elemental-live) encoder.
 The most imporant point for this tests are:
 - Configure timecode source as "system clock"
 - Set "OnFi timecode frequency" to 1
 - Check "time code insertion" inside video
 - Strongly recommended Framerate = follow source
 
-This is the config we used for this experiment:
-![elemental-live-job-config](./pics/elemental-live-job-config-v1.png "Elemental live config")
+This is the config we used for RTMP input:
+![elemental-live-job-config](./pics/elemental-live-job-config-v1.png "Elemental live config for RTMP")
+
+For TS+FEC input test we'll use same elemental encoder [Elemental live box](https://www.elemental.com/products/aws-elemental-live) encoder.
+The most imporant point for this tests are:
+- Configure timecode source as "system clock"
+- Set "Forward error correction" to "Column and Row" and set "Column Depth" and "Row length" values:
+    - Colunm depth: It means 1 extra FEC packet will be added every "Column Depth" TS packets.
+    - Row length: It means 1 extra FEC packet will be added every "Row length" TS packets.
+    - Additional data added can be calculated: TotalBitrate = MediaBitrate * (1/(ColumnDepth + 1) + 1/(RowLength + 1)
+- Check "time code insertion" inside video
+- Strongly recommended Framerate = follow source
+
+This is the config we used for TS+FEC input:
+![elemental-live-job-config](./pics/elemental-live-job-config-fec-v1.png "Elemental live config for TS+FEC")
 
 ## Test playback
 You can use [VideoJS HLS demo page](https://videojs.github.io/videojs-contrib-hls/) to test playback, just paste the value "playback_url" returned in the creation job response. See next picture.
