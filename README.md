@@ -64,6 +64,10 @@ curl -X POST \
 ```
 
 ### TS + FEC (SMPTE 2022)
+*This communications is based on UDP unidirectional communication (encoder to live platform)*, your firewall / router needs to be configured properly and allow UDP outputs from the encoder to the internet from the encoder's IP.
+
+You also have to take into account FEC information is sent on different ports than the media. So if you are using port 2000 for media you also need to open 2002 and 2004 (if you are using 2D FEC).
+
 Job request for TS + FEC:
 ```
 curl -X POST \
@@ -118,7 +122,9 @@ curl -X POST \
 }'
 ```
 ### SRT
-Job request for SRT:
+*Remember [SRT](https://www.srtalliance.org/about-github/) is based on UDP bidirectional communication*, your firewall / router needs to be configured properly and allow UDP outputs from the encoder's IP (caller) and UDP back from the internet on the same port
+
+Job request for [SRT](https://www.srtalliance.org/about-github/):
 ```
 curl -X POST \
   https://api.bcovlive.io/v1/jobs \
@@ -403,7 +409,3 @@ Note: We can use [AWS lambdas](https://aws.amazon.com/lambda/) and [AWS Lambdas 
 
 # References
 - [Brightcove live API reference](https://docs.brightcove.com/live-api/v1/doc/index.html)
-
-# TODOs
-- Add [SRT](https://www.srtalliance.org/about-github/) as ingest option.  *Remember SRT is based on UDP bidirectional communication*, your firewall / router needs to be configured properly and allow UDP outputs from the encoder's IP (caller) and UDP back from the internet on the same port
-- Add TS+FEC as ingest option. *This communications is based on UDP unidirectional communication (encoder to live platform)*, your firewall / router needs to be configured properly and allow UDP outputs from the encoder to the internet from the encoder's IP.
